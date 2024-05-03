@@ -1,0 +1,26 @@
+/* eslint-disable no-unused-vars */
+import React from 'react'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import Home from './pages/Home/Home'
+import Login from './pages/Login/Login'
+import SignUp from './pages/SignUp/SignUp'
+
+const routes = (
+  <Router>
+    <Routes>
+      <Route path="/SignUp" exact element={<SignUp />}></Route>
+      <Route path="/Home" exact element={<Home />}></Route>
+      <Route path="/login" exact element={<Login />}></Route>
+    </Routes>
+  </Router>
+)
+
+const App = () => {
+  return (
+    <div>
+      {routes}
+    </div>
+  )
+}
+
+export default App
