@@ -13,8 +13,10 @@ const TagInput = ({tags, setTags}) => {
     const addNewTag = () => {
         {/* .trim limpa a string
             / Verifica se o inputValue não está vazio após remover os espaços em branco e se não acrescenta a tag á lista*/}
+        const trimmedValue = inputValue.trim();
         if(!inputValue.trim() !== "") {
-            setTags([...tags, inputValue.trim()]);
+            console.log("Tags",tags)
+            setTags([...tags, `#${trimmedValue}`]);
         }
         {/** Limpar a coluna depois de ser acrescenta a tag */}
         setInputValue('')
@@ -37,7 +39,7 @@ const TagInput = ({tags, setTags}) => {
         <div className='flex items-center gap-2 flex-wrap mt-2'>
             {tags.map((tag,index) => (
                 <span key={index} className='flex items-center gap-2 text-sm text-slate-900 bg-slate-100 px-3 py-1 rounded'>
-                 # {tag}
+                 {tag}
                  <button onClick={() => {handleRemoveTag(tag)}}>
                     <MdClose/>
                  </button>
@@ -55,6 +57,7 @@ const TagInput = ({tags, setTags}) => {
               onChange={handleTag}
               onKeyDown={handleKeyDown}
               />
+              {/*Quero este icon ----> [+] */}
             <button className="w-8 h-8 flex items-center justify-center rounded border border-blue-700 hover:bg-slate-800"
             onClick={()=>{addNewTag()}}>
                 <MdAdd className="text-2xl text-blue-700 hover:text-white" />

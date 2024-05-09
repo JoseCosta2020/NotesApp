@@ -1,15 +1,19 @@
 // eslint-disable-next-line no-unused-vars
 import React, { useState } from 'react'
 import NavBar from '../../components/NavBar/NavBar'
-import {Link} from "react-router-dom"
+import {Link, useNavigate} from "react-router-dom"
 import PasswordInput from '../../components/Input/PasswordInput';
 import { validateEmail } from '../../utils/helper';
+import axiosInstance from '../../utils/axiosInstance';
 
 const Login = () => {
 
+  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
+
+  const navigate = useNavigate()
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -18,6 +22,10 @@ const Login = () => {
       setError("Please enter a validate email address");
       return;
     }
+    if(!fullName){
+      setError('Please entre full Name')
+      return
+    }
     if(!password) {
       setError("Please enter the password")
       return;
@@ -25,6 +33,30 @@ const Login = () => {
 
     {/* Se o email for válido o estado do erro é limpo "" e nao apece nada*/}
     setError("")
+    console.log("URL da solicitação:", axiosInstance.defaults.baseURL + "/login");
+
+    // API Call Login
+    try {
+      const response = await axiosInstance.post("/login",{
+        email:email,
+        fullName:fullName,
+        password:password
+      });
+      console.log(response.data.accessToken)
+      //Handle successful login response
+      if(response.data && response.data.accessToken){
+         localStorage.setItem("token", response.data.accessToken)
+         navigate('/Home')
+      }
+
+    }catch(error){
+      if(error.response && error.response.data && error.response.data.message){
+        setError(error.response.data.message);
+      } else {
+        setError('An expected error occured')
+      }
+    }
+
   };
 
   return <>
@@ -39,6 +71,7 @@ const Login = () => {
            value={email}
            onChange={(e) => setEmail(e.target.value)}
           />
+          <input type='text' placeholder='FullName' className='input-box' value={fullName} onChange={(e) => setFullName(e.target.value)}/>
           <PasswordInput 
             value={password}
             onChange={(e)=> setPassword(e.target.value)}

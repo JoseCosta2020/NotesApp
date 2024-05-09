@@ -4,6 +4,7 @@ import {MdOutlinePushPin} from "react-icons/md";
 import {MdCreate, MdDelete} from "react-icons/md";
 
 const NoteCard = ({
+    key,
     title,
     date,
     content,
@@ -17,6 +18,7 @@ const NoteCard = ({
     <div className='border rounded p-4 bg-white hover:shadow-xl transition-all ease-in-out'>
         <div className="flex items-center justify-between">
             <div >
+                <h6>{key}</h6>
                 <h6 className="text-sm font-medium">{title}</h6>
                 <spam className="text-sm font-medium">{date}</spam>
             </div>

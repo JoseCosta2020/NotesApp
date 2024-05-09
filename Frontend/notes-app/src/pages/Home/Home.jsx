@@ -1,10 +1,14 @@
 // eslint-disable-next-line no-unused-vars
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import NavBar from "../../components/NavBar/NavBar";
 import NoteCard from "../../components/Cards/NoteCard";
 import { MdAdd } from "react-icons/md";
 import Modal from "react-modal";
 import AddEditNotes from "./AddEditNotes";
+import { useNavigate } from "react-router-dom";
+import moment from "moment";
+import axiosInstance from "../../utils/axiosInstance";
+import ToastMessage from "../../components/ToastMessage/ToastMessage";
 
 const Home =() => {
     const [openAddEditModel, setOpenAddEditModel] = useState({
@@ -12,53 +16,114 @@ const Home =() => {
         type: "add",
         data: null,
     });
+    const [showToastMsg, setShowToastMsg] = useState({
+        isShow: false,
+        message:"",
+        type:"add",
+    });
+
+    const [userInfo, setUserInfo] = useState(null);
+    const [userNotes, setUserNotes] = useState([]);
+    const navigate = useNavigate();
+
+    //Handle Edit
+    const handleEdit = (noteDetails) => {
+        setOpenAddEditModel({ isShow:true, data: noteDetails, type:'edit'})
+    }
+
+    //Show Message
+    const showToastMessage =(message, type) => {
+        setShowToastMsg({
+            isShow:true,
+            message,
+            type
+        })
+    }
+
+    //Close toast
+    const handleCloseToast =() => {
+        setShowToastMsg({
+            isShow:false,
+            message:""
+        })
+    }
+
+    //Get User Info
+    const getUserInfo = async () => {
+        try {
+            const response = await axiosInstance.get('/get-user')
+            console.log('Resposta',response.data)
+            if (response.data && response.data.isUser) {
+                setUserInfo(response.data.isUser);
+            }
+        } catch(error) {
+            if (error.response.status === 401) {
+                localStorage.clear();
+                navigate('/login');
+            }
+        }
+    };
+
+    // API Call Notes
+    const getNotes = async () => {
+        try {
+            const response = await axiosInstance.get("/get-all-notes")
+            if (response.data && response.data.notes) {
+                setUserNotes(response.data.notes);
+                console.log('NOTES:',response.data.notes)
+            }   
+          }catch(error){
+            console.log("An unexpected error occurred. Please try again")
+        }
+     }
+
+    // Delete Note
+     const handleDelete = async (noteDetails) => {
+        try{
+            const noteId=noteDetails._id
+            const response = await axiosInstance.delete('/delete-note/'+noteId);
+             if(response.data && !response.data.error){
+                  getNotes();
+                  showToastMessage('Deleted Note successfully')
+             }
+          }catch(error){
+              if (error.response && error.response.data && error.response.data.message)
+              {
+                  console.log('Erro Editar')
+              }
+              
+          }
+    }
+
+
+    useEffect(() => {
+        getUserInfo();
+        getNotes();
+        return () => {};
+    }, []);
+
+     
+
+
     return (
         <>
-        <NavBar/>
-
+        <NavBar userInfo={userInfo}/>
         <div className="container mx-auto">
             {/* Por cada linha tenho 3 Notebooks e depois vai para baixo */}
             <div className="grid grid-cols-3 gap-4 mt-8">
-                <NoteCard 
-                title="Meeting on 7 April" 
-                date="7 April 2020" 
-                content="Primeiro content"
-                tags="#Meeting"
-                isPinned={true}
-                onEdit={()=>{}}
-                onDelete={()=>{}}
-                onPinNote={()=>{}}
+                {userNotes.map((item, index) => (
+                    <NoteCard 
+                    key={item._id}
+                    title={item.title}
+                    date={moment(item.createdOn).format('Do MMM YYYY')}
+                    content={item.content}
+                    tags={item.tags}
+                    isPinned={item.isPinned}
+                    onEdit={()=>{handleEdit(item)}}
+                    onDelete={()=>{handleDelete(item)}}
+                    onPinNote={()=>{}}
                 />
-                <NoteCard 
-                title="Meeting on 7 April" 
-                date="7 April 2020" 
-                content="Primeiro content"
-                tags="#Meeting"
-                isPinned={true}
-                onEdit={()=>{}}
-                onDelete={()=>{}}
-                onPinNote={()=>{}}
-                />
-                <NoteCard 
-                title="Meeting on 7 April" 
-                date="7 April 2020" 
-                content="Primeiro content"
-                tags="#Meeting"
-                isPinned={true}
-                onEdit={()=>{}}
-                onDelete={()=>{}}
-                onPinNote={()=>{}}
-                />
-                <NoteCard 
-                title="Meeting on 7 April" 
-                date="7 April 2020" 
-                content="Primeiro content"
-                tags="#Meeting"
-                isPinned={true}
-                onEdit={()=>{}}
-                onDelete={()=>{}}
-                onPinNote={()=>{}}
-                />
+                ))}
             </div>
         </div>
 
@@ -84,10 +149,20 @@ const Home =() => {
                 type={openAddEditModel.type}
                 NoteData={openAddEditModel.data}
                 onClose={() => {
-                setOpenAddEditModel({ isShow: false, type: "add", data: null});
+                setOpenAddEditModel({ isShow: false, type: "add", data: null})
                 }}
+                getAllNotes={getNotes}
+                showToastMessage={showToastMessage}
             />
         </Modal>
+
+        <ToastMessage
+          isShow={showToastMsg.isShow}
+          message={showToastMsg.message}
+          type={showToastMsg.type}
+          onClose={handleCloseToast}
+        />
+
         </>
     )
 }
